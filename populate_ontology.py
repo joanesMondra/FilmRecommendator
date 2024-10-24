@@ -121,14 +121,14 @@ def procesar_csv(file_path, entity_type, columns):
             movie = create_individual(Movie, movie_id)
 
             link.linksMovie = movie
-            link.hasImdbId = row['imdbId']
-            link.hasTmdbId = row['tmdbId']
+            link.hasImdbId = str(row['imdbId'])
+            link.hasTmdbId = str(row['tmdbId'])
 
     print(f"{entity_type.capitalize()} procesados correctamente.")
 
 
 # Procesar los diferentes CSVs
-#procesar_csv("links.csv", "links", ["movieId", "imdbId", "tmdbId"])
+procesar_csv("links.csv", "links", ["movieId", "imdbId", "tmdbId"])
 procesar_csv("movies.csv", "movies", ["movieId", "title", "genres", "year", "director", "actors"])
 procesar_csv("ratings.csv", "ratings", ["userId", "movieId", "rating", "timestamp"])
 procesar_csv("tags.csv", "tags", ["userId", "movieId", "tag", "timestamp"])
