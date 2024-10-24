@@ -78,7 +78,7 @@ def procesar_csv(file_path, entity_type, columns):
             movie = create_individual(Movie, movie_id)
             movie.hasTitle = row['title']
             movie.hasGenre = row['genres']
-            movie.hasYear = int(row['year'])
+            movie.hasYear = (row['year'])
             movie.hasDirector = row['director']
             movie.hasActor = row['actors']
 
