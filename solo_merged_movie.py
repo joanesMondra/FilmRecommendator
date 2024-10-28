@@ -1,27 +1,43 @@
 import pandas as pd
 from owlready2 import get_ontology, Thing, DataProperty, FunctionalProperty, ObjectProperty
 
+
 # Cargar archivos CSV con límite de 1000 filas
 movies_df = pd.read_csv('grupo3/merged_movies.csv')  # Solo las primeras 1000 películas
+tags_df = pd.read_csv('grupo3/users_watched.csv')
+recommended_df = pd.read_csv('grupo3/ratings_mayor_cuatro.csv')
 
 # 1. Converter la columna 'movieId' a INT
 movies_df['movieId'] = movies_df['movieId'].astype(int)
 
 # Cargar la ontología existente
-ontology = get_ontology('pelis_ontology_1000.rdf').load()
+ontology = get_ontology('merged_movie_solo.owl').load()
 
 # Definir clases y propiedades si no existen
+# Definir clases y propiedades si no existen en la ontología
 with ontology:
+    # Clase base para personas
+    class Person(Thing):
+        pass
+
+    # Subclases de Person
+    class Actor(Person):
+        pass
+    class Director(Person):
+        pass
+    class User(Person):
+        pass
+
+    # Clase base para películas
     class Movie(Thing):
         pass
-    class Actor(Thing):
-        pass  # Nueva clase Actor
+    # Subclase de Movie para géneros específicos
+    class GenreMovie(Movie):
+        pass
 
-    class Director(Thing):
-        pass  # Nueva clase Director
-
+    # Clase para géneros
     class Genre(Thing):
-        pass  # Nueva clase para los géneros
+        pass
 
     # Propiedades de datos
     class title(DataProperty, FunctionalProperty):
@@ -36,22 +52,22 @@ with ontology:
         domain = [Movie]
         range = [str]
 
+    # Propiedades de objeto
     class has_actor(ObjectProperty):
         domain = [Movie]
-        range = [Actor]  # Relación entre películas y actores
+        range = [Actor]
 
     class has_director(ObjectProperty):
         domain = [Movie]
-        range = [Director]  # Relación entre películas y directores
+        range = [Director]
 
-    # Nueva propiedad de objeto para relacionar películas con géneros
     class has_genre(ObjectProperty):
         domain = [Movie]
-        range = [Genre]  # Relación entre película y género
+        range = [Genre]
 
     class is_genre_of(ObjectProperty):
         domain = [Genre]
-        range = [Movie]  # Relación inversa entre género y película
+        range = [Movie]
 
     class is_actor_of(ObjectProperty):
         domain = [Actor]
@@ -61,15 +77,36 @@ with ontology:
         domain = [Director]
         range = [Movie]
 
+    class has_watched(ObjectProperty):
+        domain = [Movie]
+        range = [User]
+
+    class is_watched_by(ObjectProperty):
+        domain = [User]
+        range = [Movie]
+        inverse_property = has_watched
+
+    # Nueva propiedad para recomendaciones de usuario a película
+    class has_recommended(ObjectProperty):
+        domain = [User]
+        range = [Movie]
+
+    #  # Relación inversa de hasRecommended
+    class is_recommended_by(ObjectProperty):
+        domain = [Movie]
+        range = [User]
+        inverse_property = has_recommended
+
 # # Definir subclases para cada género y relacionarlas con películas
 # genres = [
-#     'Crime', 'Mystery', 'Thriller', 'Comedy', 'Documentary', 'Children', 'Drama', 'War', 'Action', 'Horror',
-#     'Sci_Fi', 'Adventure', 'Romance', 'Fantasy', '(no genres listed)', 'Musical', 'Animation', 'Western', 'IMAX', 'Film_Noir'
+#      'Crime', 'Mystery', 'Thriller', 'Comedy', 'Documentary', 'Children', 'Drama', 'War', 'Action', 'Horror',
+#      'Sci_Fi', 'Adventure', 'Romance', 'Fantasy', '(no genres listed)', 'Musical', 'Animation', 'Western', 'IMAX', 'Film_Noir'
 # ]
 
 genre_instances = {}
 actor_instances = {}
 director_instances = {}
+user_instances = {}
 genres = set([genre for sublist in movies_df['genres'].str.split('|').dropna() for genre in sublist])
 
 for genre in genres:
@@ -138,6 +175,37 @@ for index, row in movies_df.iterrows():
         # Agregar el ID de la película creada al conjunto
         created_movie_ids.add(movie_id_str)
 
+for index, row in tags_df.iterrows():
+    user_id = row['userId']
+    user_id_str = f"User_{int(row['userId'])}"
+    movie_id_str = f"Movie_{int(row['movieId'])}"
+    movie = Movie(movie_id_str)
+
+    if 'userId' in row:
+        if user_id_str not in user_instances:
+            user_instance = User(user_id_str)
+            user_instances[user_id_str] = user_instance
+        else:
+            user_instance = user_instances[user_id_str]
+
+        user_instance.has_watched.append(movie)
+        movie.is_watched_by.append(user_instance)
+
+for index, row in recommended_df.iterrows():
+    user_id = row['userId']
+    user_id_str = f"User_{int(row['userId'])}"
+    movie_id_str = f"Movie_{int(row['movieId'])}"
+    movie = Movie(movie_id_str)
+
+    if 'userId' in row:
+        if user_id_str not in user_instances:
+            user_instance = User(user_id_str)
+            user_instances[user_id_str] = user_instance
+        else:
+            user_instance = user_instances[user_id_str]
+        user_instance.has_recommended.append(movie)
+        movie.is_recommended_by.append(user_instance)
+
 # Guardar la ontología actualizada
 ontology.save(file='merged_movie_solo.owl', format="rdfxml")
-print("Ontología actualizada guardada como 'updated_pelis_1000_lines.owl'")
+print("Ontología actualizada guardada como 'merged_movie_solo.owl'")
