@@ -1,17 +1,16 @@
 import pandas as pd
+import ast
 from owlready2 import get_ontology, Thing, DataProperty, FunctionalProperty, ObjectProperty
-
 
 # Cargar archivos CSV con límite de 1000 filas
 movies_df = pd.read_csv('grupo3/merged_movies.csv')  # Solo las primeras 1000 películas
 tags_df = pd.read_csv('grupo3/users_watched.csv')
-recommended_df = pd.read_csv('grupo3/ratings_mayor_cuatro.csv')
 
 # 1. Converter la columna 'movieId' a INT
 movies_df['movieId'] = movies_df['movieId'].astype(int)
 
 # Cargar la ontología existente
-ontology = get_ontology('merged_movie_solo.owl').load()
+ontology = get_ontology('ontologia_poblada3.rdf').load()
 
 # Definir clases y propiedades si no existen
 # Definir clases y propiedades si no existen en la ontología
@@ -52,6 +51,10 @@ with ontology:
         domain = [Movie]
         range = [str]
 
+    class rating(DataProperty, FunctionalProperty):
+        domain = [Movie]
+        range = [float]
+
     # Propiedades de objeto
     class has_actor(ObjectProperty):
         domain = [Movie]
@@ -86,27 +89,13 @@ with ontology:
         range = [Movie]
         inverse_property = has_watched
 
-    # Nueva propiedad para recomendaciones de usuario a película
-    class has_recommended(ObjectProperty):
-        domain = [User]
-        range = [Movie]
 
-    #  # Relación inversa de hasRecommended
-    class is_recommended_by(ObjectProperty):
-        domain = [Movie]
-        range = [User]
-        inverse_property = has_recommended
-
-# # Definir subclases para cada género y relacionarlas con películas
-# genres = [
-#      'Crime', 'Mystery', 'Thriller', 'Comedy', 'Documentary', 'Children', 'Drama', 'War', 'Action', 'Horror',
-#      'Sci_Fi', 'Adventure', 'Romance', 'Fantasy', '(no genres listed)', 'Musical', 'Animation', 'Western', 'IMAX', 'Film_Noir'
-# ]
 
 genre_instances = {}
 actor_instances = {}
 director_instances = {}
 user_instances = {}
+
 genres = set([genre for sublist in movies_df['genres'].str.split('|').dropna() for genre in sublist])
 
 for genre in genres:
@@ -130,7 +119,7 @@ for index, row in movies_df.iterrows():
     if movie_id_str not in created_movie_ids:  # Verificar en el conjunto
         movie = Movie(movie_id_str)
         movie.title = row['title']
-
+        movie.rating = row['valoracion_media']
         # Asignar ID de IMDB y TMDB si están disponibles
         if 'imdbId' in row and pd.notna(row['imdbId']):
             movie.imdbId = str(int(row['imdbId']))
@@ -158,6 +147,7 @@ for index, row in movies_df.iterrows():
                 movie.has_actor.append(actor_instance)
                 actor_instance.is_actor_of.append(movie)
 
+
         # Relacionar director (solo uno)
         if 'director' in row and pd.notna(row['director']):
             # Tomar el director
@@ -179,33 +169,20 @@ for index, row in tags_df.iterrows():
     user_id = row['userId']
     user_id_str = f"User_{int(row['userId'])}"
     movie_id_str = f"Movie_{int(row['movieId'])}"
-    movie = Movie(movie_id_str)
 
-    if 'userId' in row:
-        if user_id_str not in user_instances:
-            user_instance = User(user_id_str)
-            user_instances[user_id_str] = user_instance
-        else:
-            user_instance = user_instances[user_id_str]
+    if int(row['movieId']) in movies_df['movieId']:
+        movie = Movie(movie_id_str)
+        if 'userId' in row:
+            if user_id_str not in user_instances:
+                user_instance = User(user_id_str)
+                user_instances[user_id_str] = user_instance
+            else:
+                user_instance = user_instances[user_id_str]
 
-        user_instance.has_watched.append(movie)
-        movie.is_watched_by.append(user_instance)
+            user_instance.has_watched.append(movie)
+            movie.is_watched_by.append(user_instance)
 
-for index, row in recommended_df.iterrows():
-    user_id = row['userId']
-    user_id_str = f"User_{int(row['userId'])}"
-    movie_id_str = f"Movie_{int(row['movieId'])}"
-    movie = Movie(movie_id_str)
-
-    if 'userId' in row:
-        if user_id_str not in user_instances:
-            user_instance = User(user_id_str)
-            user_instances[user_id_str] = user_instance
-        else:
-            user_instance = user_instances[user_id_str]
-        user_instance.has_recommended.append(movie)
-        movie.is_recommended_by.append(user_instance)
 
 # Guardar la ontología actualizada
-ontology.save(file='merged_movie_solo.owl', format="rdfxml")
-print("Ontología actualizada guardada como 'merged_movie_solo.owl'")
+ontology.save(file='ontologia_poblada3.rdf', format="rdfxml")
+print("Ontología actualizada guardada como 'ontologia_poblada2.rdf'")
