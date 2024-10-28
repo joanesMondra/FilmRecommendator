@@ -10,7 +10,7 @@ tags_df = pd.read_csv('grupo3/users_watched.csv')
 movies_df['movieId'] = movies_df['movieId'].astype(int)
 
 # Cargar la ontología existente
-ontology = get_ontology('ontologia_poblada3.rdf').load()
+ontology = get_ontology('ontologia_poblada4.rdf').load()
 
 # Definir clases y propiedades si no existen
 # Definir clases y propiedades si no existen en la ontología
@@ -53,7 +53,7 @@ with ontology:
 
     class rating(DataProperty, FunctionalProperty):
         domain = [Movie]
-        range = [float]
+        range = [str]
 
     # Propiedades de objeto
     class has_actor(ObjectProperty):
@@ -119,7 +119,7 @@ for index, row in movies_df.iterrows():
     if movie_id_str not in created_movie_ids:  # Verificar en el conjunto
         movie = Movie(movie_id_str)
         movie.title = row['title']
-        movie.rating = row['valoracion_media']
+        movie.rating = str(float(row['valoracion_media']))
         # Asignar ID de IMDB y TMDB si están disponibles
         if 'imdbId' in row and pd.notna(row['imdbId']):
             movie.imdbId = str(int(row['imdbId']))
@@ -184,5 +184,5 @@ for index, row in tags_df.iterrows():
 
 
 # Guardar la ontología actualizada
-ontology.save(file='ontologia_poblada3.rdf', format="rdfxml")
+ontology.save(file='ontologia_poblada4.rdf', format="rdfxml")
 print("Ontología actualizada guardada como 'ontologia_poblada2.rdf'")
