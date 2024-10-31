@@ -10,7 +10,7 @@ tags_df = pd.read_csv('grupo3/users_watched.csv')
 movies_df['movieId'] = movies_df['movieId'].astype(int)
 
 # Cargar la ontología existente
-ontology = get_ontology('ontologia_poblada4.rdf').load()
+ontology = get_ontology('peliculas.rdf').load()
 
 # Definir clases y propiedades si no existen
 # Definir clases y propiedades si no existen en la ontología
@@ -184,5 +184,5 @@ for index, row in tags_df.iterrows():
 
 
 # Guardar la ontología actualizada
-ontology.save(file='ontologia_poblada4.rdf', format="rdfxml")
-print("Ontología actualizada guardada como 'ontologia_poblada2.rdf'")
+ontology.save(file='peliculas.rdf', format="rdfxml")
+print("Ontología actualizada guardada como 'peliculas.rdf'")
