@@ -1,140 +1,197 @@
-from owlready2 import *
 import pandas as pd
+import ast
+from owlready2 import get_ontology, Thing, DataProperty, FunctionalProperty, ObjectProperty
 
-# Cargar la ontología
-onto = get_ontology("pelis.rdf").load()
+# Cargar archivos CSV con límite de 1000 filas
+movies_df = pd.read_csv('grupo3/merged_movies.csv')  # Solo las primeras 1000 películas
+tags_df = pd.read_csv('grupo3/tags.csv')
 
-with onto:
+# 1. Converter la columna 'movieId' a INT
+movies_df['movieId'] = movies_df['movieId'].astype(int)
+
+# Cargar la ontología existente
+ontology = get_ontology('ontologia_oficial.rdf').load()
+
+# Definir clases y propiedades si no existen
+# Definir clases y propiedades si no existen en la ontología
+with ontology:
+    # Clase base para personas
+    class Person(Thing):
+        pass
+
+    # Subclases de Person
+    class Actor(Person):
+        pass
+    class Director(Person):
+        pass
+    class User(Person):
+        pass
+
+    # Clase base para películas
     class Movie(Thing):
         pass
-    class User(Thing):
-        pass
-    class Rating(Thing):
-        pass
-    class Tag(Thing):
-        pass
-    class Link(Thing):
+
+    # Clase para géneros
+    class Genre(Thing):
         pass
 
-    #propiedades para Movie
-    class hasTitle(Movie >> str, FunctionalProperty):
-        pass
-    class hasGenre(Movie >> str, FunctionalProperty):
-        pass
-    class hasYear(Movie >> int, FunctionalProperty):
-        pass
-    class hasDirector(Movie >> str, FunctionalProperty):
-        pass
-    class hasActor(Movie >> str, FunctionalProperty):
-        pass
+    # Propiedades de datos
+    class title(DataProperty, FunctionalProperty):
+        domain = [Movie]
+        range = [str]
 
-    #propiedades para Rating
-    class givenBy(Rating >> User, FunctionalProperty):
-        pass
-    class ratesMovie(Rating >> Movie, FunctionalProperty):
-        pass
-    class hasRatingValue(Rating >> float, FunctionalProperty):
-        pass
-    class hasTimestamp(Rating >> str, FunctionalProperty):
-        pass #ez dakit int o str hoi beidau
+    class imdbId(DataProperty, FunctionalProperty):
+        domain = [Movie]
+        range = [str]
 
-    #propiedades para Tag
-    class taggedBy(Tag >> User, FunctionalProperty):
-        pass
-    class tagsMovie(Tag >> Movie, FunctionalProperty):
-        pass
-    class hasTagValue(Tag >> str, FunctionalProperty):
-        pass
-    class tagTimestamp(Tag >> str, FunctionalProperty):
-        pass
+    class tmdbId(DataProperty, FunctionalProperty):
+        domain = [Movie]
+        range = [str]
 
-    #propiedades para Links
-    class linksMovie(Link >> Movie, FunctionalProperty):
-        pass
-    class hasImdbId(Link >> str, FunctionalProperty):
-        pass
-    class hasTmdbId(Link >> str, FunctionalProperty):
-        pass
+    class rating(DataProperty, FunctionalProperty):
+        domain = [Movie]
+        range = [str]
 
-# Función auxiliar para crear individuos y asignarles propiedades
-def create_individual(cls, name, **kwargs):
-    if cls in onto.classes():  # Verifica si la clase existe en la ontología
-        return cls(name, **kwargs)
-    else:
-        print(f"Clase {cls} no encontrada en la ontología.")
-        return None
+    class tags(DataProperty, FunctionalProperty):
+        domain = [Movie]
+        range = [str]
 
+    # Propiedades de objeto
+    class has_actor(ObjectProperty):
+        domain = [Movie]
+        range = [Actor]
 
-# Función para procesar un archivo CSV y poblar la ontología
-def procesar_csv(file_path, entity_type, columns):
-    # Cargar el archivo CSV
-    df = pd.read_csv(file_path)
+    class has_director(ObjectProperty):
+        domain = [Movie]
+        range = [Director]
 
-    # Iterar sobre cada fila en el DataFrame
-    for _, row in df.iterrows():
-        # Identificar el tipo de entidad que estamos procesando
-        if entity_type == "movies":
-            movie_id = f"Movie_{row['movieId']}"
-            movie = create_individual(Movie, movie_id)
-            movie.hasTitle = row['title']
-            movie.hasGenre = row['genres']
-            movie.hasYear = (row['year'])
-            movie.hasDirector = row['director']
-            movie.hasActor = row['actors']
+    class has_genre(ObjectProperty):
+        domain = [Movie]
+        range = [Genre]
 
-        elif entity_type == "ratings":
-            rating_id = f"Rating_{row['userId']}_{row['movieId']}"
-            rating = create_individual(Rating, rating_id)
-            user_id = f"User_{row['userId']}"
-            movie_id = f"Movie_{row['movieId']}"
+    class is_genre_of(ObjectProperty):
+        domain = [Genre]
+        range = [Movie]
 
-            # Crear o recuperar usuario y película
-            user = create_individual(User, user_id)
-            movie = create_individual(Movie, movie_id)
+    class is_actor_of(ObjectProperty):
+        domain = [Actor]
+        range = [Movie]
 
-            rating.givenBy = user
-            rating.ratesMovie = movie
-            rating.hasRatingValue = float(row['rating'])
-            rating.hasTimestamp = str(row['timestamp'])
+    class is_director_of(ObjectProperty):
+        domain = [Director]
+        range = [Movie]
 
-        elif entity_type == "tags":
-            tag_id = f"Tag_{row['userId']}_{row['movieId']}"
-            tag = create_individual(Tag, tag_id)
-            user_id = f"User_{row['userId']}"
-            movie_id = f"Movie_{row['movieId']}"
+    class has_watched(ObjectProperty):
+        domain = [Movie]
+        range = [User]
 
-            # Crear o recuperar usuario y película
-            user = create_individual(User, user_id)
-            movie = create_individual(Movie, movie_id)
-
-            tag.taggedBy = user
-            tag.tagsMovie = movie
-            tag.hasTagValue = row['tag']
-            tag.tagTimestamp = str(row['timestamp'])
-
-        elif entity_type == "links":
-            link_id = f"Link_{row['movieId']}"
-            link = create_individual(Link, link_id)
-            movie_id = f"Movie_{row['movieId']}"
-
-            # Crear o recuperar la película
-            movie = create_individual(Movie, movie_id)
-
-            link.linksMovie = movie
-            link.hasImdbId = str(row['imdbId'])
-            link.hasTmdbId = str(row['tmdbId'])
-
-    print(f"{entity_type.capitalize()} procesados correctamente.")
+    class is_watched_by(ObjectProperty):
+        domain = [User]
+        range = [Movie]
+        inverse_property = has_watched
 
 
-# Procesar los diferentes CSVs
-procesar_csv("links.csv", "links", ["movieId", "imdbId", "tmdbId"])
-procesar_csv("movies.csv", "movies", ["movieId", "title", "genres", "year", "director", "actors"])
-procesar_csv("ratings.csv", "ratings", ["userId", "movieId", "rating", "timestamp"])
-procesar_csv("tags.csv", "tags", ["userId", "movieId", "tag", "timestamp"])
 
-# Razonar sobre la ontología (opcional)
-sync_reasoner_pellet(infer_property_values=True)
+genre_instances = {}
+actor_instances = {}
+director_instances = {}
+user_instances = {}
+tag_instances = {}
 
-# Guardar la ontología modificada
-onto.save(file="ontologia_poblada.owl", format="rdfxml")
+genres = set([genre for sublist in movies_df['genres'].str.split('|').dropna() for genre in sublist])
+tags = set([tag for sublist in movies_df['tag'].str.split('|').dropna() for tag in sublist])
+
+for genre in genres:
+    # Crear instancias de géneros
+    genre_instance = Genre(f"Genre_{genre.replace(' ', '_')}")
+    genre_instances[genre] = genre_instance
+
+created_movie_ids = set()
+# Mapear películas, actores y directores (solo las primeras 1000 filas)
+for index, row in movies_df.iterrows():
+    # Limpiar y asegurar que los IDs están en el formato correcto
+    movies_df['tmdbId'] = pd.to_numeric(movies_df['tmdbId'], errors='coerce').fillna(0).astype(int)
+    movies_df['movieId'] = pd.to_numeric(movies_df['movieId'], errors='coerce').fillna(0).astype(int)
+    movies_df['imdbId'] = pd.to_numeric(movies_df['imdbId'], errors='coerce').fillna(0).astype(int)
+
+    # Crear el ID de la película asegurando que sea un entero
+    movie_id = int(row['movieId'])  # Convertir directamente a int
+    movie_id_str = f"Movie_{movie_id}"  # Crear el identificador
+
+    # Comprobar si la película ya existe para evitar duplicados
+    if movie_id_str not in created_movie_ids:  # Verificar en el conjunto
+        movie = Movie(movie_id_str)
+        movie.title = row['title']
+        movie.rating = str(float(row['valoracion_media']))
+        movie.tags = str(row['tag'])
+        # Asignar ID de IMDB y TMDB si están disponibles
+        if 'imdbId' in row and pd.notna(row['imdbId']):
+            movie.imdbId = str(int(row['imdbId']))
+        if 'tmdbId' in row and pd.notna(row['tmdbId']):
+            movie.tmdbId = str(int(row['tmdbId']))
+
+        # Relacionar géneros
+        movie_genres = row['genres'].split('|') if 'genres' in row else []
+        for genre in movie_genres:
+            if genre in genre_instances:
+                genre_instance = genre_instances[genre]
+                movie.has_genre.append(genre_instance)  # Relacionar película con género
+                genre_instance.is_genre_of.append(movie)  # Relación inversa género -> película
+
+
+        # Relacionar actores
+        if 'actors' in row:
+            actors = row['actors'].split('|') if '|' in row['actors'] else row['actors'].split(',')
+            actors = [actor.strip() for actor in actors]  # Eliminar espacios en blanco
+            for actor_name in actors:
+                if actor_name not in actor_instances:
+                    actor_instance =  Actor(f"Actor_{actor_name.replace(' ', '_')}")
+                    actor_instances[actor_name] = actor_instance
+                else:
+                    actor_instance = actor_instances[actor_name]
+                movie.has_actor.append(actor_instance)
+                actor_instance.is_actor_of.append(movie)
+
+
+        # Relacionar director (solo uno)
+        if 'director' in row and pd.notna(row['director']):
+            # Tomar el director
+            director_name = row['director'].strip()  # Asegúrate de limpiar espacios
+            if director_name not in director_instances:
+                director_instance = Director(f"Director_{director_name.replace(' ', '_')}")
+                director_instances[director_name] = director_instance
+            else:
+                director_instance = director_instances[director_name]
+
+            # Crear la relación entre película y director usando append
+            movie.has_director.append(director_instance)  # Relación con el director único
+            director_instance.is_director_of.append(movie)  # Relación inversa
+
+        # Agregar el ID de la película creada al conjunto
+        created_movie_ids.add(movie_id_str)
+
+
+count=0
+for index, row in tags_df.iterrows():
+    user_id = row['userId']
+    user_id_str = f"User_{int(row['userId'])}"
+    movie_id_str = f"Movie_{int(row['movieId'])}"
+
+    if int(row['movieId']) in movies_df['movieId'].astype('int'):
+
+        movie = Movie(movie_id_str)
+        if 'userId' in row:
+            if user_id_str not in user_instances:
+                user_instance = User(user_id_str)
+                user_instances[user_id_str] = user_instance
+            else:
+                user_instance = user_instances[user_id_str]
+
+            user_instance.has_watched.append(movie)
+            movie.is_watched_by.append(user_instance)
+            count+=1
+
+
+# Guardar la ontología actualizada
+ontology.save(file='ontologia_oficial.rdf', format="rdfxml")
+print("Ontología actualizada guardada como 'ontologia_oficial.rdf'")

@@ -2,7 +2,7 @@ from owlready2 import *
 from collections import Counter
 
 # Cargar la ontología
-ontology_path = 'peliculas.rdf'  # Cambia esto a la ruta de tu archivo OWL
+ontology_path = 'pelicula_ontology.rdf'  # Cambia esto a la ruta de tu archivo OWL
 onto = get_ontology(ontology_path).load()
 
 def recommend_based_on_genre(genero):
@@ -17,7 +17,7 @@ def recommend_based_on_genre(genero):
                     horror_movies.append((movie.title, movie.rating[0]))
 
     horror_movies.sort(key=lambda x: x[1], reverse=True)
-# Imprimir resultados
+    # Imprimir resultados
     if horror_movies:
         top_10_movies = horror_movies[:10]
         print(f"\nPelículas de género {genero} encontradas:")
@@ -28,6 +28,57 @@ def recommend_based_on_genre(genero):
 
 #recommendation = recommend_based_on_genre('Genre_Horror')
 #recommendation
+
+def recommend_based_on_actors(*args):
+    # Intentar encontrar películas con variaciones de "Horror"
+    actor_movies = []
+    for movie in onto.Movie.instances():
+        flag = 1
+        for elem in args:
+            if elem not in str(movie.has_actor):
+                flag = 0
+        if flag == 1:
+            actor_movies.append(movie.title)
+    if len(actor_movies) == 0:
+        return "Error: no hay peliculas con ese/esos actor(es), prueba con otro(s) actor(es)"
+    return actor_movies
+
+a = recommend_based_on_actors('Actor_Dany_Boon')
+print(a)
+
+def recommend_based_on_director(*args):
+    # Intentar encontrar películas con variaciones de "Horror"
+    director_movies = []
+    for movie in onto.Movie.instances():
+        flag = 1
+        for elem in args:
+            if elem not in str(movie.has_director):
+                flag = 0
+        if flag == 1:
+            director_movies.append(movie.title)
+    if len(director_movies) == 0:
+        return "Error: no hay peliculas con es@ director(a), prueba con otr@ director(a)"
+    return director_movies
+
+d = recommend_based_on_director('Director_Marcos_Siega')
+print(d)
+
+def recommend_based_on_tags(*args):
+    movie_tags = []
+    #flag = 0
+    for movie in onto.Movie.instances():
+        flag = 1
+        for elem in args:
+            if elem not in str(movie.tags):
+                flag = 0
+        if flag == 1:
+            movie_tags.append(movie.title)
+    if len(movie_tags) == 0:
+        return "Error: no hay peliculas con esos tags, prueba con otros o con alguno de ellos."
+    return movie_tags
+
+t = recommend_based_on_tags('family', 'classic')
+print(t)
 
 def recommend_based_on_user(user_id, cuantas):
     movies = []
@@ -49,7 +100,7 @@ def recommend_based_on_user(user_id, cuantas):
         for user in users:
             if user in str(movie_new.is_watched_by):
                 if str(movie_new) not in movies:
-                    movies_new.append(str(movie_new))
+                    movies_new.append(str(movie_new.title))
 
     # Contar las ocurrencias de cada elemento
     conteo = Counter(movies_new)
@@ -62,5 +113,5 @@ def recommend_based_on_user(user_id, cuantas):
     else:
         return 'Error, no se pueden recomendar tantas peliculas.'
 
-r = recommend_based_on_user('User_102040', 100000)
+r = recommend_based_on_user('User_102040', 10)
 print(r)
