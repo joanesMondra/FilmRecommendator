@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recommendation by Actor</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>Recommendation by Actor</h1>
+        <form id="actorForm">
+            <label for="actor">Actor (e.g., Actor_Dany_Boon):</label>
+            <input type="text" id="actor" name="actor" required>
+            <!-- Botón para activar la función de recomendación para el actor ingresado -->
+            <button type="button" onclick="getRecommendations('actor')">Get Recommendations</button>
+        </form>
+        <div id="results"></div>
+        <!-- Botón para volver a la página principal -->
+        <button type="button" onclick="window.location.href='/'" class="back-button">Volver a la Página Principal</button>
+    </div>
+
+    <script>
+    function getRecommendations(type) {
+            const actor = document.getElementById("actor").value.trim();
+
+            // Validación del campo vacío
+            if (!actor) {
+                alert("Por favor, introduce un nombre de actor válido.");
+                return;
+            }
+
+            const data = { actor: actor };
+
+            // Realizar una solicitud POST al servidor para obtener recomendaciones de películas basadas en el actor
+            fetch(`http://127.0.0.1:5000/recommend/${type}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => {
+                // Verificar si la respuesta del servidor es correcta
+                if (!response.ok) {
+                    throw new Error('Error en la respuesta del servidor');
+                }
+                return response.json();
+            })
+            .then(data => {
+                let resultDiv = document.getElementById("results");
+
+                // Limpiar resultados previos
+                resultDiv.innerHTML = "";
+
+                // Comprobar si existen recomendaciones válidas
+                if (data.recommendations && data.recommendations.length > 0) {
+                    resultDiv.innerHTML = "<h2>Películas Recomendadas:</h2><ul>";
+                    // Añadir cada película recomendada a la lista de resultados
+                    data.recommendations.forEach(movie => {
+                        resultDiv.innerHTML += `<li>${movie}</li>`;
+                    });
+                    resultDiv.innerHTML += "</ul>";
+                } else {
+                    // Mostrar un mensaje si no se encuentran películas
+                    resultDiv.innerHTML = "<p>No se encontraron películas para el actor ingresado.</p>";
+                }
+            })
+            .catch(error => {
+                // Manejar errores que ocurren durante la operación de fetch
+                console.error('Error:', error);
+                alert('Ocurrió un error al procesar la solicitud. Inténtalo de nuevo más tarde.');
+            });
+        }
+    </script>
+
+</body>
+<footer class="footer">
+    <p>&copy; 2024 Movie Recommendation. Todos los derechos reservados.</p>
+    <p>Contacto: <a href="mailto:info@movierecommendation.com">info@movierecommendation.com</a></p>
+    <p>Síguenos en:
+        <a href="#" class="social-link">Facebook</a> |
+        <a href="#" class="social-link">Twitter</a> |
+        <a href="#" class="social-link">Instagram</a>
+    </p>
+</footer>
+
+</html>
+
+<!-- Comentarios sobre la funcionalidad del código -->
+<!-- 1. El formulario permite a los usuarios ingresar el nombre de un actor para obtener recomendaciones de películas basadas en ese actor. -->
+<!-- 2. La función getRecommendations se activa cuando se hace clic en el botón, enviando una solicitud POST al servidor. -->
+<!-- 3. La llamada fetch envía el nombre del actor ingresado al backend para su procesamiento. -->
+<!-- 4. Si la respuesta del servidor es correcta, las recomendaciones devueltas se muestran en el div de resultados. -->
+<!-- 5. Si el campo de actor está vacío, se muestra una alerta para informar al usuario. -->
+<!-- 6. Si no se encuentran recomendaciones, se muestra un mensaje indicando que no se encontraron películas para el actor ingresado. -->

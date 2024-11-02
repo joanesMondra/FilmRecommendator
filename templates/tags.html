@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recommendation by Tags</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>Recommendation by Tags</h1>
+        <form id="tagsForm">
+            <label for="tags">Tags (comma-separated, e.g., family, classic):</label>
+            <input type="text" id="tags" name="tags" required>
+            <!-- Botón para activar la función de recomendación basada en los tags ingresados -->
+            <button type="button" onclick="getRecommendations('tags')">Get Recommendations</button>
+        </form>
+        <div id="results"></div>
+        <!-- Botón para volver a la página principal -->
+        <button type="button" onclick="window.location.href='/'" class="back-button">Volver a la Página Principal</button>
+    </div>
+
+    <script>
+    function getRecommendations(type) {
+            const tags = document.getElementById("tags").value.trim();
+
+            // Validación de campo vacío
+            if (!tags) {
+                alert("Por favor, ingresa al menos un tag.");
+                return;
+            }
+
+            const data = { tags: tags };
+
+            // Realizar una solicitud POST al servidor para obtener recomendaciones de películas basadas en los tags
+            fetch(`http://127.0.0.1:5000/recommend/${type}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => response.json())
+            .then(data => {
+                let resultDiv = document.getElementById("results");
+
+                // Verificar si la respuesta contiene recomendaciones
+                if (Array.isArray(data.recommendations)) {
+                    resultDiv.innerHTML = "<h2>Películas Recomendadas:</h2><ul>";
+                    // Añadir cada película recomendada a la lista de resultados
+                    data.recommendations.forEach(movie => {
+                        resultDiv.innerHTML += `<li>${movie}</li>`;
+                    });
+                    resultDiv.innerHTML += "</ul>";
+                } else {
+                    // Mostrar mensaje de error si no se encuentran recomendaciones
+                    resultDiv.innerHTML = `<p>${data.recommendations}</p>`;
+                }
+            })
+            .catch(error => {
+                // Manejar errores que ocurren durante la operación de fetch
+                console.error('Error:', error);
+            });
+        }
+    </script>
+
+</body>
+<footer class="footer">
+    <p>&copy; 2024 Movie Recommendation. Todos los derechos reservados.</p>
+    <p>Contacto: <a href="mailto:info@movierecommendation.com">info@movierecommendation.com</a></p>
+    <p>Síguenos en:
+        <a href="#" class="social-link">Facebook</a> |
+        <a href="#" class="social-link">Twitter</a> |
+        <a href="#" class="social-link">Instagram</a>
+    </p>
+</footer>
+</html>
+
+<!-- Comentarios sobre la funcionalidad del código -->
+<!-- 1. El formulario permite a los usuarios ingresar tags separados por comas para obtener recomendaciones de películas basadas en esos tags. -->
+<!-- 2. La función getRecommendations se activa cuando se hace clic en el botón, enviando una solicitud POST al servidor. -->
+<!-- 3. La llamada fetch envía los tags ingresados al backend para su procesamiento. -->
+<!-- 4. Si la respuesta del servidor contiene recomendaciones, estas se muestran en el div de resultados. -->
+<!-- 5. Si el campo de tags está vacío, se muestra una alerta para informar al usuario. -->
+<!-- 6. Si no se encuentran recomendaciones, se muestra un mensaje indicando que no se encontraron películas para los tags ingresados. -->

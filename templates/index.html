@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Movie Recommendation</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>Movie Recommendation</h1>
+        <h2>¿Qué tipo de recomendación quieres hoy?</h2>
+        <div class="button-container">
+            <!-- Botón para ir a la página de recomendación por género -->
+            <button onclick="window.location.href='/genre'">Recomendación por Género</button>
+            <!-- Botón para ir a la página de recomendación por actor -->
+            <button onclick="window.location.href='/actor'">Recomendación por Actor</button>
+            <!-- Botón para ir a la página de recomendación por director -->
+            <button onclick="window.location.href='/director'">Recomendación por Director</button>
+            <!-- Botón para ir a la página de recomendación por tags -->
+            <button onclick="window.location.href='/tags'">Recomendación por Tags</button>
+            <!-- Botón para ir a la página de recomendación por usuario -->
+            <button onclick="window.location.href='/user'">Recomendación por Usuario</button>
+        </div>
+    </div>
+</body>
+
+<footer class="footer">
+    <p>&copy; 2024 Movie Recommendation. Todos los derechos reservados.</p>
+    <p>Contacto: <a href="mailto:info@movierecommendation.com">info@movierecommendation.com</a></p>
+    <p>Síguenos en:
+        <a href="#" class="social-link">Facebook</a> |
+        <a href="#" class="social-link">Twitter</a> |
+        <a href="#" class="social-link">Instagram</a>
+    </p>
+</footer>
+</html>
+
+<!-- Comentarios sobre la funcionalidad del código -->
+<!-- 1. La página principal permite al usuario seleccionar el tipo de recomendación que desea recibir. -->
+<!-- 2. Cada botón lleva al usuario a una página específica para obtener recomendaciones según el criterio seleccionado (género, actor, director, tags o usuario). -->
+<!-- 3. El título y los encabezados proporcionan una introducción clara sobre la función de la página. -->
+<!-- 4. El pie de página incluye información de contacto y enlaces a redes sociales para una mejor experiencia de usuario. -->
+
+

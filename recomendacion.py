@@ -2,29 +2,29 @@ from owlready2 import *
 from collections import Counter
 
 # Cargar la ontología
-ontology_path = 'pelicula_ontology.rdf'  # Cambia esto a la ruta de tu archivo OWL
+ontology_path = 'ontologia_oficial.rdf'  # Cambia esto a la ruta de tu archivo OWL
 onto = get_ontology(ontology_path).load()
 
 def recommend_based_on_genre(genero):
-    # Intentar encontrar películas con variaciones de "Horror"
+    # Intentar encontrar películas con variaciones del género
     horror_movies = []
     for movie in onto.Movie.instances():
-        if hasattr(movie, 'has_genre'):# Verificar que la película tenga el atributo has_genre
-            #print(movie.has_genre, type(movie.has_genre),'aa')
+        if hasattr(movie, 'has_genre'):  # Verificar que la película tenga el atributo has_genre
             if genero in str(movie.has_genre):
                 if hasattr(movie, 'rating') and movie.rating:
                     # Agregar la película y su rating a la lista; rating[0] para obtener el valor
                     horror_movies.append((movie.title, movie.rating[0]))
 
+    # Ordenar películas por su rating en orden descendente
     horror_movies.sort(key=lambda x: x[1], reverse=True)
-    # Imprimir resultados
+
+    # Devolver los títulos de las mejores 10 películas
     if horror_movies:
         top_10_movies = horror_movies[:10]
-        print(f"\nPelículas de género {genero} encontradas:")
-        for movie in top_10_movies:
-            print(movie)
+        return [movie[0] for movie in top_10_movies]
     else:
-        print(f"No se encontraron películas de género {genero}.")
+        return ["No se encontraron películas de género " + genero + "."]
+
 
 #recommendation = recommend_based_on_genre('Genre_Horror')
 #recommendation
