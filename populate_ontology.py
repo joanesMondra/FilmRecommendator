@@ -171,26 +171,39 @@ for index, row in movies_df.iterrows():
         created_movie_ids.add(movie_id_str)
 
 
-count=0
+# Filtrar una vez fuera del bucle para evitar operaciones repetidas
+common_movie_ids = set(movies_df['movieId'].astype(int))
+count = 0
+
+# Iterar solo sobre los movieId en común
 for index, row in tags_df.iterrows():
-    user_id = row['userId']
-    user_id_str = f"User_{int(row['userId'])}"
-    movie_id_str = f"Movie_{int(row['movieId'])}"
+    movie_id = int(row['movieId'])
+    user_id = int(row['userId'])
 
-    if int(row['movieId']) in movies_df['movieId'].astype('int'):
+    # Si el movieId está en el conjunto de IDs comunes
+    if movie_id in common_movie_ids:
+        # Crear identificadores de cadena
+        user_id_str = f"User_{user_id}"
+        movie_id_str = f"Movie_{movie_id}"
 
+        # Crear la instancia de Movie (asumiendo que ya tienes la clase Movie definida)
         movie = Movie(movie_id_str)
-        if 'userId' in row:
-            if user_id_str not in user_instances:
-                user_instance = User(user_id_str)
-                user_instances[user_id_str] = user_instance
-            else:
-                user_instance = user_instances[user_id_str]
 
-            user_instance.has_watched.append(movie)
-            movie.is_watched_by.append(user_instance)
-            count+=1
+        # Crear o recuperar la instancia de User
+        if user_id_str not in user_instances:
+            user_instance = User(user_id_str)
+            user_instances[user_id_str] = user_instance
+        else:
+            user_instance = user_instances[user_id_str]
 
+        # Agregar la película a la lista de películas vistas del usuario
+        user_instance.has_watched.append(movie)
+        movie.is_watched_by.append(user_instance)
+
+        count += 1
+
+# print('Cantidad de usuarios únicos creados:', len(user_instances))
+# print('Total de asignaciones de películas a usuarios:', count)
 
 # Guardar la ontología actualizada
 ontology.save(file='ontologia_oficial.rdf', format="rdfxml")
