@@ -16,15 +16,34 @@ FilmRecommendator es una aplicación de recomendación de películas que utiliza
 - *recomendacion.py*: Algoritmo para crear las recomendaciones explicadas anteriormente.
 - *ontologia_oficial.rdf*: Ontología poblada con los datos de las películas.
 - *templates/*: Carpeta con plantillas HTML para la interfaz.
-- *static/*: Archivos estáticos (CSS, JavaScript).
+- *static/*: Archivos estáticos (CSS).
 - *grupo3*: Dentro de la carpeta grupo se pueden encontrar:
   - archivos CSV con los datos de las películas
   - *preProcessing.ipynb*: la limpieza de datos y las recomendaciones utilizando los CSV.
   - *usuarios_y_peliculas.py*: el algoritmo para comprobar cuantos usuarios hay.
+ 
 ## Requisitos
 - Python 3.8 o superios
 - Librerías Python: Flask, Owlready2, pandas
+- Navegador web moderno: Usar Chrome, FIrefox o Edge para una mejor experiencia de usuario
+
+## Instrucciones de Instalación y Uso
+1. Clona el repositorio:
+git clone https://github.com/joanesMondra/FilmRecommendator.git
+
+2. Navega al directorio del proyecto:
+cd FilmRecommendator
+
+3. Pobla la ontología con los datos de las películas y usuarios:
+python populate_ontology.py
+
+4. Ejecuta la aplicación para iniciar el servidor:
+python app.py
+
+5.Abre un navegador y accede a http://127.0.0.1:5000/ para interactuar con la aplicación.
 
 ## Créditos
 Desarrollado por Joanes De Miguel, Esteban Ruiz y Hodei Azurmendi
 
+## Contacto
+Para cualquier pregunta, comentario o sugerencia, por favor contacta al desarrollador principal a través de GitHub.
