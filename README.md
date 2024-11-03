@@ -24,7 +24,7 @@ FilmRecommendator es una aplicación de recomendación de películas que utiliza
  
 ## Requisitos
 - Python 3.8 o superios
-- Librerías Python: Flask, Owlready2, pandas
+- Librerías Python: Flask, Owlready2, pandas, numpy, matplotlib, seaborn, datetime, operator, transformers, sklearn, ipywidgets, IPython
 - Navegador web moderno: Usar Chrome, FIrefox o Edge para una mejor experiencia de usuario
 
 ## Instrucciones de Instalación y Uso
