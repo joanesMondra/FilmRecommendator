@@ -40,7 +40,7 @@ python populate_ontology.py
 4. Ejecuta la aplicación para iniciar el servidor:
 python app.py
 
-5.Abre un navegador y accede a http://127.0.0.1:5000/ para interactuar con la aplicación.
+5. Abre un navegador y accede a http://127.0.0.1:5000/ para interactuar con la aplicación.
 
 ## Créditos
 Desarrollado por Joanes De Miguel, Esteban Ruiz y Hodei Azurmendi
